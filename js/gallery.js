@@ -63,16 +63,46 @@ const images = [
     description: "Lighthouse Coast Sea",
   },
 ];
-// preview — посилання на маленьку версію зображення для картки галереї
-// original — посилання на велику версію зображення для модального вікна
-// description — текстовий опис зображення, для атрибута alt малого зображення та підпису великого зображення в модалці.
-const listImages = images.map(image =>`<li class="gallery-item">
-  <a class="gallery-link" href=${image.original}>
+
+const listImages = document.querySelector(".gallery");
+
+const listMarkup = images
+  .map(
+    ({ preview, original, description }) => `<li class="gallery-item">
+  <a class="gallery-link" href=${original}>
     <img
       class="gallery-image"
-      src=${image.preview}
-      data-source="large-image.jpg"
-      alt=${image.description}
+      src=${preview}
+      data-source="${original}"
+      alt=${description}
     />
   </a>
-</li>`).join('');
+</li>`
+  )
+  .join("");
+
+listImages.insertAdjacentHTML("beforeend", listMarkup);
+
+listImages.addEventListener("click", hadleModalOpen);
+
+function hadleModalOpen(event) {
+  event.preventDefault();
+  const currentImage = event.target;
+  if (currentImage === event.currentTarget) return;
+
+  const instance = basicLightbox.create(
+    `
+    <img src="${currentImage.dataset.source}" width="800" height="600">
+  `,
+    {
+      onShow: () => document.addEventListener("keydown", onKeyPress),
+      onClose: () => document.removeEventListener("keydown", onKeyPress),
+    }
+  );
+  const onKeyPress = (e) => {
+    if (e.key === "Escape") {
+      instance.close();
+    }
+  };
+  instance.show();
+}
